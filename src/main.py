@@ -2,6 +2,7 @@
 from gen_synth_data import gen_synthetic_data
 from bs_auto import bs_auto
 from bs_numpy import bs_numpy_parallel
+from bs_sklearn import bs_sklearn
 
 N = 100000
 k = 300
@@ -16,7 +17,14 @@ if __name__ == "__main__":
 
   print("\n")
 
-  coef_numpy = bs_numpy_parallel(X, y, N, k, B)
-  print("coefs numpy: ")
-  print(coef_numpy)
+  coef_sklearn = bs_sklearn(X, y, N, k, B, 4, 0)
+  print("coefs sklearn: ")
+  print(coef_sklearn)
+  
+  print("\n")
+
+  # coef_numpy = bs_numpy_parallel(X, y, N, k, B)
+  # print("coefs numpy: ")
+  # print(coef_numpy)
+
 

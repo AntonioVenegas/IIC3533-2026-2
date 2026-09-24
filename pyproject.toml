@@ -14,10 +14,5 @@ dependencies = [
     "scikit-learn>=1.9.1",
     "threadpoolctl>=3.7.0",
 ]
-
-[project.scripts]
-iic3533-2026-2 = "iic3533_2026_2:main"
-
-[build-system]
-requires = ["uv_build>=0.12.17,<0.13.0"]
-build-backend = "uv_build"
+[tool.uv]
+package = false

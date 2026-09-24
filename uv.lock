@@ -127,7 +127,7 @@ wheels = [
 [[package]]
 name = "iic3533-2026-2"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "joblib" },
     { name = "matplotlib" },
