@@ -3,6 +3,8 @@ from sklearn.linear_model import LinearRegression
 from joblib import Parallel, delayed
 import time
 
+from intervals import confidence_intervals
+
 def generar_datos(N=100000, k=300, seed=42):
     """Genera los datos sintéticos según el ítem (a) de tarea01.pdf."""
     rng = np.random.default_rng(seed)
@@ -41,49 +43,18 @@ def fit_resample(X, y, seed):
     
     return modelo.coef_
 
-def bs_sklearn(X, y, N, k, B, p, seed):
-    # Parámetros del experimento definidos en tarea01.pdf
-    # N = 100000
-    # k = 300
-    # B = 48
-    n_jobs = p # Modificar según el p deseado para los experimentos
-    
-    # print("Generando datos...")
-    # X, y, beta_star = generar_datos(N, k)
-    
-    print(f"Iniciando bootstrapping con {B} resamples y p={n_jobs} procesos...")
+def bs_sklearn(X, y, B, p, seed=0):
+    print(f"Iniciando bootstrapping con {B} resamples y p={p} procesos...")
     inicio = time.time()
-    
+
     # Paralelismo de tareas con joblib
     # Se pasa una semilla distinta a cada tarea para asegurar resamples independientes
-    betas_boot = Parallel(n_jobs=n_jobs)(
-        delayed(fit_resample)(X, y, seed) for seed in range(B)
+    betas_boot = Parallel(n_jobs=p)(
+        delayed(fit_resample)(X, y, seed + i) for i in range(B)
     )
-    
-    tiempo_total = time.time() - inicio
-    print(f"Tiempo de ejecución: {tiempo_total:.4f} segundos")
-    
-    # Paso 3: Construir el intervalo de confianza descartando el 2,5% inferior y superior
-    betas_boot = np.array(betas_boot) # Dimensión: (B, k+1)
-    
-    # Calcula los percentiles 2.5 y 97.5 para cada coeficiente
-    ic_inferior = np.percentile(betas_boot, 2.5, axis=0)
-    ic_superior = np.percentile(betas_boot, 97.5, axis=0)
-    
-    # Verificación opcional de un coeficiente
-    # print(f"\nCoeficiente beta_0 (verdadero): {beta_star[0]:.4f}")
-    out: list[tuple[int, int]] = []
-    for j in range(k + 1):
-        beta_j = [beta[j] for beta in betas_boot]
-        beta_j.sort()
-        len_beta_j = len(beta_j)
-        inferior = round(len_beta_j * 0.025)
-        superior = round(len_beta_j * 0.975)
-        out.append((beta_j[inferior], beta_j[superior]))
-        # print(beta_j[inferior], beta_j[superior])
-    return out
-    # print(f"Intervalo de confianza 95%: [{ic_inferior[0]:.4f}, {ic_superior[0]:.4f}]")
-    # return [(ic_inferior[0], ic_superior[0])]
 
-# if __name__ == "__main__":
-#     main()
+    tiempo_total = time.time() - inicio
+    print(f"Tiempo bs_sklearn: {tiempo_total:.4f} segundos")
+
+    # Construir el intervalo de confianza descartando el 2,5% inferior y superior
+    return confidence_intervals(np.array(betas_boot))

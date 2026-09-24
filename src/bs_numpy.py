@@ -1,41 +1,28 @@
 from joblib import Parallel, delayed
 import numpy as np
-import matplotlib 
-import threadpoolctl
-import random
-from gen_synth_data import gen_synthetic_data, uniform
 from time import time
 
-# X, y, real_beta = gen_synthetic_data()
-# n = 100000
-# k = 300
-# B = 48
+from intervals import confidence_intervals
 
-def bs_numpy_parallel(X: np.ndarray, y: np.ndarray, N: int = 100000, k: int = 300, B: int = 48):
-    def bs_numpy(X: np.ndarray, y: np.ndarray):
-        rows = uniform(N, (N, ))
-        X_b = X[rows, :]
-        y_b = y[rows]
-        A = X_b.T @ X_b
-        b = X_b.T @ y_b
-        return np.linalg.solve(A, b)
+def bs_numpy(X: np.ndarray, y: np.ndarray, seed: int):
+    # rng propio por tarea: el rng global de gen_synth_data se reinicia con la
+    # misma semilla en cada proceso de joblib y repetiría los resamples
+    rng = np.random.default_rng(seed)
+    N = X.shape[0]
+    rows = rng.choice(N, size=N, replace=True)
+    X_b = X[rows, :]
+    y_b = y[rows]
+    A = X_b.T @ X_b
+    b = X_b.T @ y_b
+    return np.linalg.solve(A, b)
 
-    beta_hat = np.linalg.solve(X.transpose() @ X, X.transpose() @ y) # beta_hat sobre todo el dataset
-
+def bs_numpy_parallel(X: np.ndarray, y: np.ndarray, B: int = 48, p: int = 4, seed: int = 0) -> np.ndarray:
     # bootstrap con joblib
     start = time()
-    results = Parallel (n_jobs=4) (
-        delayed(bs_numpy)(X, y) for _ in range(B)
+    results = Parallel(n_jobs=p)(
+        delayed(bs_numpy)(X, y, seed + i) for i in range(B)
     )
-    print(time() - start)
+    print(f"Tiempo bs_numpy: {time() - start:.4f} segundos")
+
     # calcular el intervalo de confianza con los vectores beta_hat_j
-    out: list[tuple[int, int]] = []
-    for j in range(k + 1):
-        beta_j = [beta[j] for beta in results]
-        beta_j.sort()
-        len_beta_j = len(beta_j)
-        inferior = round(len_beta_j * 0.025)
-        superior = round(len_beta_j * 0.975)
-        out.append((beta_j[inferior], beta_j[superior]))
-        # print(beta_j[inferior], beta_j[superior])
-    return out
+    return confidence_intervals(np.array(results))
