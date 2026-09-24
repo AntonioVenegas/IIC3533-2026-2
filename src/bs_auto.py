@@ -8,4 +8,11 @@ def bs_auto(X: np.ndarray, y: np.ndarray, p: int = 1):
     n_jobs=p
   ).fit(X, y)
 
-  print(regr.get_params())
+  coefficients = np.array([
+    estimator.coef_ for estimator in regr.estimators_ # type: ignore
+  ], dtype=np.float64)
+
+  # Optional: average coefficients across the fitted estimators
+  mean_coefficients = coefficients.mean(axis=0)
+
+  return regr, coefficients, mean_coefficients

@@ -1,5 +1,3 @@
-from typing import Any
-
 import numpy as np
 
 rng = np.random.default_rng(seed=0)  # Set the seed for next steps
@@ -15,5 +13,5 @@ def gen_synthetic_data(N: int = 100000, k: int = 300, B: int = 48) -> tuple[np.n
 
   return (X, y, beta_star)
 
-def uniform(limit: int, size: tuple):
+def uniform(limit: int, size: tuple[int, int]):
   return rng.choice(limit, size=size, replace=True) 
