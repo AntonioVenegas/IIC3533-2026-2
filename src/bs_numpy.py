@@ -2,17 +2,14 @@ from joblib import Parallel, delayed
 import numpy as np
 import matplotlib 
 import threadpoolctl
-from data_generator import generate_dataset, normal, uniform
 import random
+from gen_synth_data import gen_synthetic_data, uniform
 from time import time
 
+X, y, real_beta = gen_synthetic_data()
 n = 100000
 k = 300
-B = 48 # resamples
-X = generate_dataset(n, k)
-real_beta = normal((k + 1, ))
-noise = normal((n, )) # noise
-y = (X @ real_beta) + noise
+B = 48
 
 def bs_numpy(X, y):
     rows = uniform(n, (n, ))
