@@ -39,6 +39,49 @@ def guardar_metricas(metricas, path="metricas_tiempos.csv"):
   print(f"Tabla de métricas guardada en {path}")
 
 
+def calcular_overhead(tiempos):
+  overhead = []
+  for metodo in METODOS:
+    t_uno = tiempos[metodo][1]
+    for p in sorted(tiempos[metodo]):
+      tiempo = tiempos[metodo][p]
+      overhead.append((p, metodo, p * tiempo - t_uno))
+  return overhead
+
+
+def guardar_overhead(overhead, path="overhead_tiempos.csv"):
+  with open(path, "w", newline="", encoding="utf-8") as archivo:
+    escritor = csv.writer(archivo)
+    escritor.writerow(["p", "metodo", "overhead_segundos"])
+    escritor.writerows(overhead)
+  print(f"Tabla de overhead guardada en {path}")
+
+
+def plot_overhead(overhead, path="overhead_tiempos.png"):
+  fig, ax = plt.subplots(figsize=(8, 5))
+  colores = {"auto": "#1f77b4", "sklearn": "#ff7f0e", "numpy": "#2ca02c"}
+  for metodo in METODOS:
+    filas = [fila for fila in overhead if fila[1] == metodo]
+    ax.plot(
+      [fila[0] for fila in filas],
+      [fila[2] for fila in filas],
+      marker="o",
+      color=colores[metodo],
+      label=metodo,
+    )
+  ax.axhline(0, color="black", linestyle="--", label="ideal")
+  ax.set_xlabel("Número de procesos (p)")
+  ax.set_ylabel("Overhead $T_o(p)$ (segundos)")
+  ax.set_title("Overhead según el número de procesos")
+  ax.set_xticks(sorted({fila[0] for fila in overhead}))
+  ax.grid(True, alpha=0.3)
+  ax.legend()
+  fig.tight_layout()
+  fig.savefig(path, dpi=150)
+  plt.close(fig)
+  print(f"Gráfico de overhead guardado en {path}")
+
+
 def plot_metricas(tiempos, metricas, path="metricas_tiempos.png"):
   p_valores = sorted({fila[0] for fila in metricas})
   metricas_por_metodo = {
@@ -98,8 +141,11 @@ def plot_metricas(tiempos, metricas, path="metricas_tiempos.png"):
 if __name__ == "__main__":
   tiempos = leer_tiempos()
   metricas = calcular_metricas(tiempos)
+  overhead = calcular_overhead(tiempos)
   guardar_metricas(metricas)
+  guardar_overhead(overhead)
   plot_metricas(tiempos, metricas)
+  plot_overhead(overhead)
 
   for metodo in METODOS:
     t_uno = tiempos[metodo][1]
