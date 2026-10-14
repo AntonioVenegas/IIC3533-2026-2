@@ -1,3 +1,139 @@
+# ===== Objetos y binarios compilados =====
+*.o
+*.obj
+*.ko
+*.elf
+*.slo
+*.lo
+*.gch
+*.pch
+*.pcm
+*.ilk
+*.map
+*.exp
+
+# Librerías
+*.a
+*.lib
+*.la
+*.lai
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Ejecutables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+*.bin
+
+# ===== Debug / símbolos =====
+*.dSYM/
+*.su
+*.idb
+*.pdb
+*.gcno
+*.gcda
+*.gcov
+*.profraw
+*.profdata
+
+# Dependencias generadas
+*.d
+*.dep
+
+# ===== Directorios de build =====
+build/
+build-*/
+cmake-build-*/
+out/
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+.cache/
+
+# ===== CMake =====
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+CMakeUserPresets.json
+cmake_install.cmake
+install_manifest.txt
+CTestTestfile.cmake
+Testing/
+_deps/
+compile_commands.json
+
+# ===== Autotools / Make =====
+Makefile.in
+autom4te.cache/
+config.log
+config.status
+config.h
+configure~
+stamp-h1
+.deps/
+.libs/
+
+# ===== Meson / Ninja =====
+.ninja_deps
+.ninja_log
+build.ninja
+meson-logs/
+meson-private/
+
+# ===== Gestores de paquetes =====
+conan/
+conanbuildinfo.*
+conaninfo.txt
+graph_info.json
+vcpkg_installed/
+
+# ===== IDEs y editores =====
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.iml
+.vs/
+*.sln.docstates
+*.suo
+*.user
+*.userosscache
+*.VC.db
+*.VC.opendb
+*.sdf
+*.opensdf
+*.ipch
+.clangd/
+.ccls-cache/
+*.swp
+*.swo
+*~
+\#*\#
+.\#*
+
+# ===== Sistema operativo =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Varios =====
+*.log
+*.tmp
+core
+core.*
+vgcore.*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
