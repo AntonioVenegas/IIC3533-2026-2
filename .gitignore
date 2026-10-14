@@ -30,6 +30,7 @@
 *.x86_64
 *.hex
 *.bin
+serial_*
 
 # ===== Debug / símbolos =====
 *.dSYM/
