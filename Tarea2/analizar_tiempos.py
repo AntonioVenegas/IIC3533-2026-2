@@ -21,9 +21,10 @@ def leer_tiempos(path=f'output/tiempos_{sys.argv[1].lower()}.csv'):
 
 def calcular_metricas(tiempos):
   metricas = []
-  t_uno_c1 = tiempos[0][1]
-  t_uno_c2 = tiempos[0][2]
-  t_uno_c3 = tiempos[0][3]
+  # Hardcoded serial n=256
+  t_uno_c1 = 3336.35
+  t_uno_c2 = 3710.70
+  t_uno_c3 = 2372.43
   for run in tiempos:
     p = run[0]
     tiempo_c1 = run[1]
@@ -135,7 +136,7 @@ def plot_metricas(tiempos, metricas, path=f"output/grafico_metricas_{sys.argv[1]
           alpha=0.7,
           label=f"ideal {compu}",
         )
-      eje.set_ylabel("Segundos")
+      eje.set_ylabel("Millisegundos")
     elif indice == 3:
       eje.plot(p_valores, p_valores, "k--", label="ideal")
       eje.set_ylabel("Speedup")
