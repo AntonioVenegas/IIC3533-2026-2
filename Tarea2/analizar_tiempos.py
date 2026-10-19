@@ -6,25 +6,29 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
+#T(1) globales
+T_UNO_C1 = 5425.50
+T_UNO_C2 = 6639.22
+T_UNO_C3 = 2807.91
+
 if sys.argv[1] is None:
   print("Debe indicarse la letra de la parte a analizar")
   print("[b | c | d]")
   sys.exit(1)
 
-def leer_tiempos(path=f'output/tiempos_{sys.argv[1].lower()}.csv'):
+def leer_tiempos(path: str =f'output/tiempos_{sys.argv[1].lower()}.csv'):
   tiempos = []
   with open(path, newline="", encoding="utf-8") as archivo:
     for fila in csv.DictReader(archivo):
       tiempos.append([int(fila["p"]), float(fila["Computador_1"]), float(fila["Computador_2"]), float(fila["Computador_3"])])
   return tiempos
 
-
 def calcular_metricas(tiempos):
   metricas = []
-  # Hardcoded serial n=256
-  t_uno_c1 = 3336.35
-  t_uno_c2 = 3710.70
-  t_uno_c3 = 2372.43
+  # Hardcoded serial n=2048
+  t_uno_c1 = T_UNO_C1
+  t_uno_c2 = T_UNO_C2
+  t_uno_c3 = T_UNO_C3
   for run in tiempos:
     p = run[0]
     tiempo_c1 = run[1]
@@ -123,11 +127,13 @@ def plot_metricas(tiempos, metricas, path=f"output/grafico_metricas_{sys.argv[1]
       for compu in ["Compu 1", "Compu 2", "Compu 3"]:
         match compu:
           case "Compu 1":
-            t_uno = tiempos[0][1]
+            t_uno = T_UNO_C1
           case "Compu 2":
-            t_uno = tiempos[0][2]
+            t_uno = T_UNO_C2
           case "Compu 3":
-            t_uno = tiempos[0][3]
+            t_uno = T_UNO_C3
+          case _:
+            t_uno = 0
         eje.plot(
           p_valores,
           [t_uno / p for p in p_valores],
