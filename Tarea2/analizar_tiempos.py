@@ -6,15 +6,19 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-#T(1) globales
-T_UNO_C1 = 5425.50
-T_UNO_C2 = 6639.22
-T_UNO_C3 = 2807.91
-
-if sys.argv[1] is None:
+if len(sys.argv) < 2 or sys.argv[1].lower() not in ("b", "c", "d"):
   print("Debe indicarse la letra de la parte a analizar")
   print("[b | c | d]")
   sys.exit(1)
+
+# T(1) = serial.cpp (parte a) con el mismo n que usa cada algoritmo:
+# Alg. 1 y Numba usan el problema base (n = N = 2048); Alg. 2 usa hojas de n = 256.
+T_SERIAL = {
+  "b": (5425.50, 6639.22, 2807.91),  # n = 2048
+  "c": (3336.35, 3710.70, 2372.43),  # n = 256
+  "d": (5425.50, 6639.22, 2807.91),  # n = 2048
+}
+T_UNO_C1, T_UNO_C2, T_UNO_C3 = T_SERIAL[sys.argv[1].lower()]
 
 def leer_tiempos(path: str =f'output/tiempos_{sys.argv[1].lower()}.csv'):
   tiempos = []
@@ -25,7 +29,7 @@ def leer_tiempos(path: str =f'output/tiempos_{sys.argv[1].lower()}.csv'):
 
 def calcular_metricas(tiempos):
   metricas = []
-  # Hardcoded serial n=2048
+  # T(1) serial segun la parte (ver T_SERIAL)
   t_uno_c1 = T_UNO_C1
   t_uno_c2 = T_UNO_C2
   t_uno_c3 = T_UNO_C3
@@ -50,7 +54,7 @@ def guardar_metricas(metricas, path=f"output/metricas_{sys.argv[1].lower()}.csv"
   with open(path, "w", newline="", encoding="utf-8") as archivo:
     escritor = csv.writer(archivo)
     escritor.writerow([
-      "p", "computador", "tiempo_segundos", "speedup", "eficiencia"
+      "p", "computador", "tiempo_ms", "speedup", "eficiencia"
     ])
     escritor.writerows(metricas)
   print(f"Tabla de métricas guardada en {path}")
@@ -142,7 +146,7 @@ def plot_metricas(tiempos, metricas, path=f"output/grafico_metricas_{sys.argv[1]
           alpha=0.7,
           label=f"ideal {compu}",
         )
-      eje.set_ylabel("Millisegundos")
+      eje.set_ylabel("Milisegundos")
     elif indice == 3:
       eje.plot(p_valores, p_valores, "k--", label="ideal")
       eje.set_ylabel("Speedup")
