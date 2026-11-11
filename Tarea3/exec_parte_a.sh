@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # filepath: /home/Arbolichuu/gits/hpc/tareas/Tarea3/exec_parte_a.sh
 
-BIN=${1:-"uv run python lu_serial.py"}
+BIN=${1:-"uv run --no-project --with numpy --with scipy python lu_serial.py"}  # CAMBIO: no compila mpi4py
 N=${2:-4096}
 
-echo "b  tiempo_promedio(ms)  GFLOPS_promedio  checksum"
+export OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1  # CAMBIO: 1 thread
+
+echo "b  tiempo_promedio(s)  GFLOPS_promedio  checksum"  # CAMBIO: ms -> s
 for b in 4096 2048 1024 512 256 128 64
 do
   suma_t=0
@@ -19,7 +21,7 @@ do
     g=$(printf '%s\n' "$salida" | sed -nE 's/.*GFLOP\/s[=:][[:space:]]*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?).*/\1/p')
     checksum=$(printf '%s\n' "$salida" | sed -nE 's/.*checksum[=:][[:space:]]*([^ ,[:space:]]+).*/\1/p')
 
-    echo "   b=$b corrida $r: $t ms, $g GFLOPS, checksum=$checksum"
+    echo "   b=$b corrida $r: $t s, $g GFLOPS, checksum=$checksum"  # CAMBIO: ms -> s
     suma_t=$(awk -v a="$suma_t" -v x="$t" 'BEGIN { print a + x }')
     suma_g=$(awk -v a="$suma_g" -v x="$g" 'BEGIN { print a + x }')
   done
