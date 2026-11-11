@@ -6,6 +6,7 @@
 #   sbatch parte_c.sh 4096 2048           -> solo esos valores de b
 #   REPS=3 sbatch parte_c.sh 512 256 128  -> 3 repeticiones de cada b
 #
+#SBATCH --comment="Este job es parte de la parte c de la Tarea 3 del ramo 'computación de alto rendimiento'"
 #SBATCH --qos=hpc-iic3533
 #SBATCH --partition=hpc-iic3533
 #SBATCH --account=default-account
