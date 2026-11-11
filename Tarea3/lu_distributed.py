@@ -1,4 +1,5 @@
 import argparse
+import os
 import numpy as np
 from mpi4py import MPI
 from scipy.linalg import lu_factor, solve_triangular
@@ -52,6 +53,10 @@ def main():
     parser.add_argument("--pc", type=int, default=1)
     parser.add_argument("--check", action="store_true",
                         help="calcula ||A - LU|| / ||A|| (solo para N chico)")
+    parser.add_argument("--csv", type=str, default=None,
+                        help="archivo CSV donde agregar los tiempos de cada proceso")
+    parser.add_argument("--rep", type=int, default=0,
+                        help="numero de repeticion (solo se anota en el CSV)")
     args = parser.parse_args()
     N, b, pr, pc = args.N, args.b, args.pr, args.pc
  
@@ -151,6 +156,15 @@ def main():
         print("rank (fila,col)  computo[s]  comunic.[s]  total[s]")
         for rk, mr, mc, tc, tm, tt in times:
             print(f"{rk:4d} ({mr},{mc})      {tc:9.4f}  {tm:10.4f}  {tt:8.4f}")
+        if args.csv:
+            T = os.environ.get("OMP_NUM_THREADS", "1")
+            new_file = not os.path.exists(args.csv)
+            with open(args.csv, "a") as f:
+                if new_file:
+                    f.write("N,b,pr,pc,T,rep,rank,fila,col,computo,comunicacion,total\n")
+                for rk, mr, mc, tc, tm, tt in times:
+                    f.write(f"{N},{b},{pr},{pc},{T},{args.rep},{rk},{mr},{mc},"
+                            f"{tc:.6f},{tm:.6f},{tt:.6f}\n")
  
     
     if args.check:
