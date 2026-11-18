@@ -54,7 +54,17 @@ for b in bs:
             n=len(t), t=t.mean(), t_std=t.std(), S=s.mean(), S_std=s.std(),
             E=s.mean() / cpus, E_std=s.std() / cpus, cpus=cpus,
             comp=np.mean([float(r["computo"]) for c in cs for r in c]),
-            comm=np.mean([float(r["comunicacion"]) for c in cs for r in c]))
+            comm=np.mean([float(r["comunicacion"]) for c in cs for r in c]),
+            comp_rank=[
+                np.mean([float(r["computo"]) for c in cs for r in c
+                         if int(r["rank"]) == rank])
+                for rank in range(pr * pc)
+            ],
+            comm_rank=[
+                np.mean([float(r["comunicacion"]) for c in cs for r in c
+                         if int(r["rank"]) == rank])
+                for rank in range(pr * pc)
+            ])
 
 # ---- Tablas (consola + markdown para el informe) ----
 md = []
@@ -129,56 +139,39 @@ def rotular_cpus(ax, y):
         inicio = fin
 
 
-# # Figura 1: speedup y eficiencia
-# fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 9.5), sharex=True)
-# for k, b in enumerate(bs):
-#     off = (k - 0.5) * ancho
-#     S = [res[(b, *c)]["S"] for c in combos]
-#     Ss = [res[(b, *c)]["S_std"] for c in combos]
-#     E = [res[(b, *c)]["E"] for c in combos]
-#     Es = [res[(b, *c)]["E_std"] for c in combos]
-#     ax1.bar(x + off, S, ancho, yerr=Ss, capsize=3, color=COLOR_B[b],
-#             edgecolor="white", linewidth=2, label=f"b = {b}", error_kw={"ecolor": TINTA})
-#     ax2.bar(x + off, E, ancho, yerr=Es, capsize=3, color=COLOR_B[b],
-#             edgecolor="white", linewidth=2, label=f"b = {b}", error_kw={"ecolor": TINTA})
-# # Speedup ideal = CPUs totales
-# ax1.hlines(cpus_combo, x - 0.45, x + 0.45, colors=TINTA, linestyles="--",
-#            linewidth=1.5, label="Ideal (= CPUs)")
-# ax1.set_title("Speedup  S = T(1×1, T=1) / T(p, T)", pad=26)
-# ax2.axhline(1, color=TINTA, linestyle="--", linewidth=1.5, label="Ideal")
-# ax2.set_title("Eficiencia  E = S / (p·T)")
-# ax2.set_ylim(0, 1.1)
-# decorar(ax1, "Speedup")
-# decorar(ax2, "Eficiencia")
-# ax1.set_ylim(0, 9)
-# rotular_cpus(ax1, 1.0)
-# ax1.legend(frameon=False, loc="upper left", ncol=3)
-# ax2.set_xlabel("Grid de procesos (pr × pc) y threads por proceso T")
-# fig.suptitle(f"LU distribuida en un nodo, N = {N}: configuraciones 0–3 "
-#              f"(promedio de 3 corridas, barras = desv. estándar)")
-# fig.tight_layout()
-# fig.savefig("parte_f_speedup.png", dpi=200)
-# fig.savefig("parte_f_speedup.pdf")
 
-# Figura 2: computo vs comunicacion (promedio por proceso) y tiempo total
-fig, axs = plt.subplots(1, len(bs), figsize=(16, 5.8), sharey=True)
-for ax, b in zip(np.atleast_1d(axs), bs):
-    comp = np.array([res[(b, *c)]["comp"] for c in combos])
-    comm = np.array([res[(b, *c)]["comm"] for c in combos])
-    tot = np.array([res[(b, *c)]["t"] for c in combos])
-    ax.bar(x, comp, 0.65, color=AZUL, edgecolor="white", linewidth=2, label="Cómputo")
-    ax.bar(x, comm, 0.65, bottom=comp, color=NARANJO, edgecolor="white",
-           linewidth=2, label="Comunicación")
-    ax.plot(x, tot, "o", color=TINTA, markersize=8, label="Tiempo total (proceso más lento)")
-    ax.set_title(f"b = {b}", pad=26)
-    decorar(ax, "Tiempo [s]" if b == bs[0] else "")
-    ax.set_xticklabels(etiquetas, fontsize=10)
-    rotular_cpus(ax, 1.0)
-    ax.set_xlabel("Grid (pr × pc) y T")
-np.atleast_1d(axs)[0].legend(frameon=False, loc="upper right")
-fig.suptitle(f"Cómputo vs comunicación por proceso (promedio entre procesos y corridas), N = {N}",
-             y=0.995)
+# Figura 1: cómputo y comunicación por rank, promediados entre repeticiones
+fig, axs = plt.subplots(
+    len(bs), len(combos),
+    figsize=(3.2 * len(combos), 3.2 * len(bs)),
+    sharey=True, squeeze=False
+)
+
+for fila, b in enumerate(bs):
+    for col, (pr, pc, T) in enumerate(combos):
+        ax = axs[fila, col]
+        m = res[(b, pr, pc, T)]
+        ranks = np.arange(pr * pc)
+
+        ax.bar(ranks, m["comp_rank"], color=AZUL, label="Cómputo")
+        ax.bar(ranks, m["comm_rank"], bottom=m["comp_rank"],
+               color=NARANJO, label="Comunicación")
+        ax.set_title(f"b={b} | {pr}×{pc}, T={T}")
+        ax.set_xlabel("Rank")
+        ax.set_xticks(ranks)
+        ax.grid(True, axis="y", alpha=0.3)
+        ax.spines[["top", "right"]].set_visible(False)
+
+        if col == 0:
+            ax.set_ylabel("Tiempo promedio [s]")
+        if fila == 0 and col == 0:
+            ax.legend(frameon=False)
+
+fig.suptitle(
+    f"Cómputo y comunicación por rank, N = {N}"
+)
 fig.tight_layout()
-fig.savefig("parte_f_tiempos.png", dpi=200)
-fig.savefig("parte_f_tiempos.pdf")
-print("\nGuardado: parte_f_speedup.{png,pdf}, parte_f_tiempos.{png,pdf}, tabla_parte_f.md")
+fig.savefig("parte_f_tiempos_por_rank.png", dpi=200)
+fig.savefig("parte_f_tiempos_por_rank.pdf")
+
+print("\nGuardado: parte_f_speedup.{png,pdf}, parte_f_tiempos.{png,pdf}, tabla_parte_f.md, parte_f_tiempos_por_rank.{png,pdf}")
